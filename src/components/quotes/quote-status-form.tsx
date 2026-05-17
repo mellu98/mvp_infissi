@@ -13,7 +13,7 @@ export function QuoteStatusForm({ quoteId, currentStatus }: Props) {
 
   return (
     <form action={action} className="flex items-center gap-2">
-      <Select name="status" defaultValue={currentStatus} className="w-40">
+      <Select key={currentStatus} name="status" defaultValue={currentStatus} className="w-40">
         {QUOTE_STATUSES.map((status) => (
           <option key={status} value={status}>
             {QUOTE_STATUS_LABELS[status]}

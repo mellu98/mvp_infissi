@@ -211,6 +211,16 @@ function extractCandidate(
 }
 
 function extractQuantity(lowerSegment: string): number {
+  // Explicit trailing/inline quantity: "zanzariera 120x240 quantità 2", "qta 2", "2 pz".
+  const explicitQtyMatch = lowerSegment.match(
+    /\b(?:quantit[aà]|qta|qty|n|num|numero)\.?\s*[:=]?\s*(\d+)\b|\b(\d+)\s*(?:pz|pezzi)\b/i
+  );
+  const explicitQty = explicitQtyMatch?.[1] ?? explicitQtyMatch?.[2];
+  if (explicitQty) {
+    const n = parseInt(explicitQty, 10);
+    if (!Number.isNaN(n) && n > 0 && n < 1000) return n;
+  }
+
   // Numeric leading: "3 zanzariere", "2 porte"
   const numMatch = lowerSegment.match(/(^|\s)(\d+)\s+(?:[a-zàèéìòù]{3,})/);
   if (numMatch && numMatch[2]) {

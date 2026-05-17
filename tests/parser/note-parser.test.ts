@@ -77,6 +77,19 @@ describe('parseQuoteNoteHeuristic', () => {
     expect(c.confidence).toBeGreaterThan(0.3);
   });
 
+  it('extracts explicit trailing quantity after dimensions', () => {
+    const r = parseQuoteNoteHeuristic(
+      'zanzariera laterale bianca 120x240 quantità 2',
+      CATALOG
+    );
+    expect(r.candidates).toHaveLength(1);
+    const c = r.candidates[0]!;
+    expect(c.quantity).toBe(2);
+    expect(c.widthCm).toBe(120);
+    expect(c.heightCm).toBe(240);
+    expect(c.matchedProductId).toBe('p1');
+  });
+
   it('extracts K5000 80x120 colore bianco', () => {
     const r = parseQuoteNoteHeuristic(
       'Sostituzione serramento K5000 PVC tripla guarnizione 80x120 colore bianco.',

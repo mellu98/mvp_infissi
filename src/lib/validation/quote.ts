@@ -10,13 +10,13 @@ const requiredNumber = z.preprocess(
   z.number().min(0)
 );
 
-const optionalCuid = z.preprocess(
+const optionalId = z.preprocess(
   (v) => (v === '' || v == null ? undefined : v),
-  z.string().cuid().optional()
+  z.string().trim().min(1).optional()
 );
 
 export const quoteCreateSchema = z.object({
-  customerId: z.string().cuid(),
+  customerId: z.string().trim().min(1),
   validUntilDays: z.preprocess(
     (v) => (v === '' || v == null ? 30 : typeof v === 'string' ? parseInt(v, 10) : v),
     z.number().int().min(1).max(365)
@@ -28,7 +28,7 @@ export const quoteCreateSchema = z.object({
 });
 
 export const quoteItemSchema = z.object({
-  productId: optionalCuid,
+  productId: optionalId,
   description: z.string().trim().min(1),
   quantity: requiredNumber.default(1),
   widthCm: optionalNumber,
@@ -36,7 +36,7 @@ export const quoteItemSchema = z.object({
   lengthCm: optionalNumber,
   discountPercentage: requiredNumber.default(0),
   manualPriceOverride: optionalNumber,
-  selectedOptionIds: z.array(z.string().cuid()).default([]),
+  selectedOptionIds: z.array(z.string().trim().min(1)).default([]),
   notes: z.string().optional(),
 });
 
