@@ -7,8 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { customerDisplayName } from '@/components/customers/customer-display-name';
-import { ParseNotePanel } from '@/components/quotes/parse-note-panel';
-import { QuoteItemForm, type QuoteProductOption } from '@/components/quotes/quote-item-form';
+import { QuoteItemSection, type QuoteProductOption } from '@/components/quotes/quote-item-section';
 import { QuoteStatusForm } from '@/components/quotes/quote-status-form';
 import { getCurrentCompanyId } from '@/lib/auth';
 import { quoteStatusLabel, quoteStatusVariant } from '@/lib/quote-status';
@@ -195,10 +194,7 @@ export default async function QuoteDetailPage({ params }: Props) {
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
-        <QuoteItemForm quoteId={quote.id} products={productOptions} />
-        <ParseNotePanel />
-      </div>
+      <QuoteItemSection quoteId={quote.id} products={productOptions} />
 
       {(quote.notes || quote.internalNotes) && (
         <Card>

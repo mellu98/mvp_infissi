@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { AlertCircle, Wand2 } from 'lucide-react';
+import { AlertCircle, PlusCircle, Wand2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import type { CandidatePrefill } from './quote-item-section';
 
 interface ParseResult {
   originalText: string;
@@ -30,15 +31,21 @@ interface ParseResult {
   }>;
 }
 
-export function ParseNotePanel() {
+interface Props {
+  onUseCandidate?: (candidate: CandidatePrefill) => void;
+}
+
+export function ParseNotePanel({ onUseCandidate }: Props) {
   const [text, setText] = useState('');
   const [result, setResult] = useState<ParseResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [usedIndexes, setUsedIndexes] = useState<Set<number>>(new Set());
   const [isPending, startTransition] = useTransition();
 
   function parse() {
     setError(null);
     setResult(null);
+    setUsedIndexes(new Set());
     startTransition(async () => {
       const response = await fetch('/api/quotes/parse-note', {
         method: 'POST',
@@ -52,6 +59,19 @@ export function ParseNotePanel() {
       }
       setResult(payload);
     });
+  }
+
+  function useCandidate(candidate: ParseResult['candidates'][number], index: number) {
+    onUseCandidate?.({
+      matchedProductId: candidate.matchedProductId,
+      productName: candidate.productName,
+      quantity: candidate.quantity,
+      widthCm: candidate.widthCm,
+      heightCm: candidate.heightCm,
+    });
+    setUsedIndexes((prev) => new Set([...prev, index]));
+    // Scroll to the item form
+    document.getElementById('quote-item-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   return (
@@ -70,12 +90,15 @@ export function ParseNotePanel() {
             value={text}
             onChange={(event) => setText(event.target.value)}
             rows={4}
-            placeholder="Esempio: zanzariera laterale bianca 120x240, quantità 2…"
+            placeholder="Es: zanzariera laterale bianca 120x240 qta 2, K5000 80x120 con anta ribalta…"
+            maxLength={2000}
           />
+          <p className="text-right text-xs text-muted-foreground">{text.length}/2000</p>
         </div>
+
         <div className="flex items-center justify-between gap-3">
           <p className="text-xs text-muted-foreground">
-            Suggerisce righe candidate. NON crea righe da solo: serve conferma manuale.
+            Suggerisce righe candidate. Clicca "Usa questa riga" per pre-compilare il form.
           </p>
           <Button type="button" onClick={parse} disabled={isPending || text.trim().length === 0}>
             {isPending ? 'Analizzo…' : 'Analizza nota'}
@@ -93,41 +116,83 @@ export function ParseNotePanel() {
           <div className="space-y-3">
             {result.warnings.map((warning) => (
               <p key={warning} className="text-sm text-amber-700">
-                {warning}
+                ⚠ {warning}
               </p>
             ))}
+
             {result.candidates.length === 0 ? (
               <p className="text-sm text-muted-foreground">Nessuna riga candidata trovata.</p>
             ) : (
-              result.candidates.map((candidate, index) => (
-                <div key={`${candidate.segment}-${index}`} className="rounded-lg border p-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <strong>{candidate.productName}</strong>
-                    {candidate.matchedProductSku && (
-                      <Badge variant="secondary">{candidate.matchedProductSku}</Badge>
-                    )}
-                    <Badge variant={candidate.confidence >= 0.6 ? 'info' : 'warning'}>
-                      conf. {Math.round(candidate.confidence * 100)}%
-                    </Badge>
-                  </div>
-                  <dl className="mt-2 grid gap-1 text-sm text-muted-foreground md:grid-cols-2">
-                    <div>Quantità: {candidate.quantity}</div>
-                    <div>
-                      Misure:{' '}
-                      {[candidate.widthCm, candidate.heightCm, candidate.lengthCm]
-                        .filter((v) => v != null)
-                        .join(' × ') || 'mancanti'}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {result.candidates.length} riga/e — clicca &ldquo;Usa questa riga&rdquo; per pre-compilare il form:
+                </p>
+                {result.candidates.map((candidate, index) => {
+                  const used = usedIndexes.has(index);
+                  return (
+                    <div
+                      key={`${candidate.segment}-${index}`}
+                      className={`rounded-lg border p-3 transition-colors ${used ? 'border-green-200 bg-green-50' : ''}`}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <strong className="text-sm">{candidate.productName}</strong>
+                          {candidate.matchedProductSku && (
+                            <Badge variant="secondary" className="text-xs">
+                              {candidate.matchedProductSku}
+                            </Badge>
+                          )}
+                          <Badge
+                            variant={candidate.confidence >= 0.6 ? 'info' : 'warning'}
+                            className="text-xs"
+                          >
+                            conf. {Math.round(candidate.confidence * 100)}%
+                          </Badge>
+                          {!candidate.matchedProductId && (
+                            <Badge variant="outline" className="text-xs text-amber-700">
+                              prodotto non abbinato
+                            </Badge>
+                          )}
+                        </div>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={used ? 'secondary' : 'default'}
+                          onClick={() => useCandidate(candidate, index)}
+                        >
+                          <PlusCircle className="mr-1 h-3.5 w-3.5" />
+                          {used ? 'Aggiunto ✓' : 'Usa questa riga'}
+                        </Button>
+                      </div>
+
+                      <dl className="mt-2 grid gap-1 text-xs text-muted-foreground md:grid-cols-2">
+                        <div>Quantità: <strong>{candidate.quantity}</strong></div>
+                        <div>
+                          Misure:{' '}
+                          <strong>
+                            {candidate.widthCm && candidate.heightCm
+                              ? `${candidate.widthCm} × ${candidate.heightCm} cm`
+                              : 'da inserire'}
+                          </strong>
+                        </div>
+                        {candidate.color && <div>Colore: <strong>{candidate.color}</strong></div>}
+                        {candidate.material && <div>Materiale: <strong>{candidate.material}</strong></div>}
+                        {candidate.selectedOptionNames.length > 0 && (
+                          <div className="md:col-span-2">
+                            Servizi rilevati: <strong>{candidate.selectedOptionNames.join(', ')}</strong>
+                          </div>
+                        )}
+                      </dl>
+
+                      {candidate.missingFields.length > 0 && (
+                        <p className="mt-2 text-xs text-amber-700">
+                          Da completare nel form: {candidate.missingFields.join(', ')}
+                        </p>
+                      )}
                     </div>
-                    <div>Colore: {candidate.color ?? '—'}</div>
-                    <div>Materiale: {candidate.material ?? '—'}</div>
-                  </dl>
-                  {candidate.missingFields.length > 0 && (
-                    <p className="mt-2 text-xs text-amber-700">
-                      Da completare: {candidate.missingFields.join(', ')}
-                    </p>
-                  )}
-                </div>
-              ))
+                  );
+                })}
+              </div>
             )}
           </div>
         )}

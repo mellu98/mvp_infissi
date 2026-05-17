@@ -18,6 +18,7 @@ import {
   PRICING_FORMULA_LABELS,
 } from '@/lib/categories';
 import { formatCurrency } from '@/lib/utils';
+import type { CandidatePrefill } from './quote-item-section';
 
 export interface QuoteProductOption {
   id: string;
@@ -41,6 +42,7 @@ export interface QuoteProductOption {
 interface Props {
   quoteId: string;
   products: QuoteProductOption[];
+  prefill?: CandidatePrefill;
 }
 
 const initialState: QuoteActionResult = { ok: false };
@@ -54,26 +56,43 @@ function SubmitButton() {
   );
 }
 
-export function QuoteItemForm({ quoteId, products }: Props) {
+export function QuoteItemForm({ quoteId, products, prefill }: Props) {
   const boundAction = addQuoteItemAction.bind(null, quoteId);
   const [state, action] = useFormState(boundAction, initialState);
   const formRef = useRef<HTMLFormElement>(null);
-  const [productId, setProductId] = useState(products[0]?.id ?? '');
+
+  const initialProductId = prefill?.matchedProductId ?? products[0]?.id ?? '';
+  const [productId, setProductId] = useState(initialProductId);
+
   const selectedProduct = useMemo(
     () => products.find((product) => product.id === productId),
     [productId, products]
   );
-  const [description, setDescription] = useState(selectedProduct?.name ?? '');
 
+  const [description, setDescription] = useState(
+    prefill?.productName ?? selectedProduct?.name ?? ''
+  );
+
+  // When key changes (parent mounts fresh on every prefill), reset from prefill
   useEffect(() => {
+    if (prefill) {
+      const pid = prefill.matchedProductId ?? products[0]?.id ?? '';
+      setProductId(pid);
+      setDescription(prefill.productName);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // only on mount — key handles remount
+
+  // Sync description when product changes normally (no prefill)
+  useEffect(() => {
+    if (prefill) return;
     setDescription(selectedProduct?.name ?? '');
-  }, [selectedProduct?.id, selectedProduct?.name]);
+  }, [selectedProduct?.id, selectedProduct?.name, prefill]);
 
   useEffect(() => {
     if (!state.ok) return;
     formRef.current?.reset();
-    const firstProductId = products[0]?.id ?? '';
-    setProductId(firstProductId);
+    setProductId(products[0]?.id ?? '');
     setDescription(products[0]?.name ?? '');
   }, [state.ok, products]);
 
@@ -84,6 +103,12 @@ export function QuoteItemForm({ quoteId, products }: Props) {
       </CardHeader>
       <CardContent>
         <form ref={formRef} action={action} className="space-y-5">
+          {prefill && (
+            <div className="rounded-md bg-blue-50 px-3 py-2 text-xs text-blue-700">
+              ✦ Pre-compilato dal parser nota. Verifica e completa i campi mancanti, poi clicca &ldquo;Aggiungi riga calcolata&rdquo;.
+            </div>
+          )}
+
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="productId">Prodotto catalogo</Label>
@@ -124,9 +149,22 @@ export function QuoteItemForm({ quoteId, products }: Props) {
               )}
             </div>
 
-            <NumberField id="quantity" label="Quantità" defaultValue="1" min="0.01" />
-            <NumberField id="widthCm" label="Larghezza (cm)" />
-            <NumberField id="heightCm" label="Altezza (cm)" />
+            <ControlledNumberField
+              id="quantity"
+              label="Quantità"
+              initialValue={prefill?.quantity ?? 1}
+              min="0.01"
+            />
+            <ControlledNumberField
+              id="widthCm"
+              label="Larghezza (cm)"
+              initialValue={prefill?.widthCm ?? null}
+            />
+            <ControlledNumberField
+              id="heightCm"
+              label="Altezza (cm)"
+              initialValue={prefill?.heightCm ?? null}
+            />
             <NumberField id="lengthCm" label="Lunghezza (cm)" />
             <NumberField id="discountPercentage" label="Sconto riga (%)" defaultValue="0" min="0" max="100" />
             <NumberField id="manualPriceOverride" label="Override prezzo unitario (€)" min="0" />
@@ -174,7 +212,7 @@ export function QuoteItemForm({ quoteId, products }: Props) {
 
           <div className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">
             Il prezzo finale viene calcolato lato server dal motore deterministico. Qui NON
-            stiamo “facendo conti a occhio”: il browser raccoglie dati, il dominio calcola.
+            stiamo &ldquo;facendo conti a occhio&rdquo;: il browser raccoglie dati, il dominio calcola.
           </div>
 
           {state.error && <p className="text-sm text-destructive">{state.error}</p>}
@@ -185,6 +223,37 @@ export function QuoteItemForm({ quoteId, products }: Props) {
         </form>
       </CardContent>
     </Card>
+  );
+}
+
+function ControlledNumberField({
+  id,
+  label,
+  initialValue,
+  min,
+  max,
+}: {
+  id: string;
+  label: string;
+  initialValue?: number | null;
+  min?: string;
+  max?: string;
+}) {
+  const [value, setValue] = useState(initialValue != null ? String(initialValue) : '');
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <Input
+        id={id}
+        name={id}
+        type="number"
+        step="0.01"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+      />
+    </div>
   );
 }
 
