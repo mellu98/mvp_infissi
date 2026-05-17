@@ -121,18 +121,18 @@ model CompanySettings {
   companyId String  @unique
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  legalName       String
-  vatNumber       String
-  taxCode         String
-  address         String
-  city            String
-  province        String
-  postalCode      String
-  country         String  @default("Italia")
-  email           String
-  phone           String
-  website         String?
-  logoUrl         String?
+  legalName  String
+  vatNumber  String
+  taxCode    String
+  address    String
+  city       String
+  province   String
+  postalCode String
+  country    String  @default("Italia")
+  email      String
+  phone      String
+  website    String?
+  logoUrl    String?
 
   defaultVatRate    Float  @default(22.0)
   currency          String @default("EUR")
