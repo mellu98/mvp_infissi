@@ -12,6 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
+    # Dummy DB URL — prisma validate/generate require the env var even if no DB is contacted.
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci?schema=public
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
