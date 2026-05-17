@@ -1,0 +1,459 @@
+// MVP Infissi — Prisma schema
+// All entities are multi-tenant via companyId.
+// Money is stored as Float; the pricing engine rounds to 2 decimals
+// using banker's rounding (see src/lib/pricing/rounding.ts).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// Enums
+// ============================================================
+
+enum UserRole {
+  ADMIN
+  SALES
+  TECHNICIAN
+}
+
+enum CustomerType {
+  PRIVATE
+  BUSINESS
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  SURVEY
+  QUOTE_SENT
+  ACCEPTED
+  LOST
+}
+
+enum PricelistStatus {
+  UPLOADED
+  EXTRACTED
+  NEEDS_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum ProductCategory {
+  WINDOW
+  INTERIOR_DOOR
+  ARMORED_DOOR
+  SHUTTER
+  PERSIANA
+  MOSQUITO_SCREEN
+  ACCESSORY
+  INSTALLATION
+  TRANSPORT
+  TAX_SUPPORT
+  OTHER
+}
+
+enum PricingFormula {
+  FIXED_PRICE
+  PER_SQUARE_METER
+  PER_LINEAR_METER
+  BASE_PLUS_AREA
+  BASE_PLUS_OPTIONS
+  CUSTOM_FORMULA
+}
+
+enum OptionPriceType {
+  FIXED
+  PER_SQUARE_METER
+  PER_LINEAR_METER
+  PERCENTAGE
+}
+
+enum QuoteStatus {
+  DRAFT
+  CALCULATED
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+enum DocumentType {
+  QUOTE_PDF
+  CONTRACT_PDF
+  UPLOADED_PRICELIST
+  OTHER
+}
+
+// ============================================================
+// Tenant root
+// ============================================================
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String
+  vatNumber String?
+  taxCode   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  settings       CompanySettings?
+  users          User[]
+  customers      Customer[]
+  notes          CustomerNote[]
+  pricelists     Pricelist[]
+  candidates     PricelistItemCandidate[]
+  products       Product[]
+  productOptions ProductOption[]
+  quotes         Quote[]
+  quoteItems     QuoteItem[]
+  documents      Document[]
+  auditLogs      AuditLog[]
+}
+
+model CompanySettings {
+  id        String  @id @default(cuid())
+  companyId String  @unique
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  legalName       String
+  vatNumber       String
+  taxCode         String
+  address         String
+  city            String
+  province        String
+  postalCode      String
+  country         String  @default("Italia")
+  email           String
+  phone           String
+  website         String?
+  logoUrl         String?
+
+  defaultVatRate    Float  @default(22.0)
+  currency          String @default("EUR")
+  quoteValidityDays Int    @default(30)
+  quoteNumberPrefix String @default("")
+
+  quoteTerms    String @default("") @db.Text
+  contractTerms String @default("") @db.Text
+
+  // Year-based progressive counter for quote numbers.
+  // Reset whenever quoteCounterYear changes.
+  quoteCounterYear  Int @default(0)
+  quoteCounterValue Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+// Users & auth
+// ============================================================
+
+model User {
+  id           String   @id @default(cuid())
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  email        String
+  passwordHash String
+  name         String
+  role         UserRole @default(SALES)
+  active       Boolean  @default(true)
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  customerNotes CustomerNote[]
+
+  @@unique([companyId, email])
+  @@index([email])
+}
+
+// ============================================================
+// CRM
+// ============================================================
+
+model Customer {
+  id          String       @id @default(cuid())
+  companyId   String
+  company     Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  type        CustomerType @default(PRIVATE)
+  firstName   String?
+  lastName    String?
+  companyName String?
+  taxCode     String?
+  vatNumber   String?
+  email       String?
+  phone       String?
+  address     String?
+  city        String?
+  province    String?
+  postalCode  String?
+  notes       String?      @db.Text
+  leadStatus  LeadStatus   @default(NEW)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  customerNotes CustomerNote[]
+  quotes        Quote[]
+  documents     Document[]
+
+  @@index([companyId])
+  @@index([leadStatus])
+  @@index([createdAt])
+  @@index([email])
+}
+
+model CustomerNote {
+  id         String   @id @default(cuid())
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  content    String   @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([companyId])
+}
+
+// ============================================================
+// Pricelists & candidate rows
+// ============================================================
+
+model Pricelist {
+  id         String          @id @default(cuid())
+  companyId  String
+  company    Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name       String
+  supplier   String?
+  category   ProductCategory @default(OTHER)
+  fileName   String
+  storageKey String
+  mimeType   String
+  fileSize   Int
+  status     PricelistStatus @default(UPLOADED)
+  uploadedAt DateTime        @default(now())
+  approvedAt DateTime?
+  notes      String?         @db.Text
+
+  candidates PricelistItemCandidate[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model PricelistItemCandidate {
+  id                  String          @id @default(cuid())
+  companyId           String
+  company             Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  pricelistId         String
+  pricelist           Pricelist       @relation(fields: [pricelistId], references: [id], onDelete: Cascade)
+  productName         String?
+  category            ProductCategory @default(OTHER)
+  sku                 String?
+  description         String?         @db.Text
+  basePrice           Float?
+  pricePerSquareMeter Float?
+  pricePerLinearMeter Float?
+  unit                String?
+  minBillableQuantity Float?
+  color               String?
+  material            String?
+  variant             String?
+  options             Json?
+  pricingFormula      PricingFormula  @default(FIXED_PRICE)
+  confidence          Float           @default(0)
+  rawText             String?         @db.Text
+  validationErrors    Json?
+  approved            Boolean         @default(false)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  @@index([pricelistId])
+  @@index([companyId])
+  @@index([approved])
+}
+
+// ============================================================
+// Product catalog
+// ============================================================
+
+model Product {
+  id                  String          @id @default(cuid())
+  companyId           String
+  company             Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  sku                 String
+  name                String
+  category            ProductCategory @default(OTHER)
+  description         String?         @db.Text
+  material            String?
+  color               String?
+  unit                String          @default("pz")
+  basePrice           Float           @default(0)
+  pricePerSquareMeter Float?
+  pricePerLinearMeter Float?
+  minBillableQuantity Float?
+  pricingFormula      PricingFormula  @default(FIXED_PRICE)
+  active              Boolean         @default(true)
+  supplier            String?
+  sourcePricelistId   String?
+  variants            Json?
+  availableOptions    Json?
+  technicalNotes      String?         @db.Text
+  demoPrice           Boolean         @default(false)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  options    ProductOption[]
+  quoteItems QuoteItem[]
+
+  @@unique([companyId, sku])
+  @@index([companyId])
+  @@index([category])
+  @@index([active])
+}
+
+model ProductOption {
+  id          String          @id @default(cuid())
+  companyId   String
+  company     Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  price       Float           @default(0)
+  priceType   OptionPriceType @default(FIXED)
+  active      Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([productId])
+  @@index([companyId])
+}
+
+// ============================================================
+// Quotes & items
+// ============================================================
+
+model Quote {
+  id                       String      @id @default(cuid())
+  companyId                String
+  company                  Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customerId               String
+  customer                 Customer    @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  quoteNumber              String
+  status                   QuoteStatus @default(DRAFT)
+  validUntil               DateTime?
+  notes                    String?     @db.Text
+  internalNotes            String?     @db.Text
+  subtotal                 Float       @default(0)
+  discountTotal            Float       @default(0)
+  vatTotal                 Float       @default(0)
+  grandTotal               Float       @default(0)
+  globalDiscountPercentage Float       @default(0)
+  vatRate                  Float       @default(22.0)
+  createdAt                DateTime    @default(now())
+  updatedAt                DateTime    @updatedAt
+
+  items     QuoteItem[]
+  documents Document[]
+
+  @@unique([companyId, quoteNumber])
+  @@index([companyId])
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model QuoteItem {
+  id                     String   @id @default(cuid())
+  companyId              String
+  company                Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  quoteId                String
+  quote                  Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  productId              String?
+  product                Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  description            String
+  productSnapshot        Json?
+  quantity               Float    @default(1)
+  widthCm                Float?
+  heightCm               Float?
+  lengthCm               Float?
+  areaMq                 Float?
+  billableAreaMq         Float?
+  linearMeters           Float?
+  unitPrice              Float    @default(0)
+  optionsTotal           Float    @default(0)
+  selectedOptions        Json?
+  selectedVariant        String?
+  discountPercentage     Float    @default(0)
+  subtotal               Float    @default(0)
+  vatRate                Float    @default(22.0)
+  vatAmount              Float    @default(0)
+  total                  Float    @default(0)
+  manualPriceOverride    Float?
+  calculationExplanation String?  @db.Text
+  position               Int      @default(0)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([quoteId])
+  @@index([productId])
+  @@index([companyId])
+}
+
+// ============================================================
+// Documents & audit
+// ============================================================
+
+model Document {
+  id         String       @id @default(cuid())
+  companyId  String
+  company    Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customerId String?
+  customer   Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  quoteId    String?
+  quote      Quote?       @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+  type       DocumentType
+  fileName   String
+  storageKey String
+  url        String?
+  mimeType   String       @default("application/pdf")
+  fileSize   Int          @default(0)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@index([companyId])
+  @@index([customerId])
+  @@index([quoteId])
+  @@index([type])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId     String?
+  userEmail  String?
+  action     String
+  entityType String
+  entityId   String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([companyId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
