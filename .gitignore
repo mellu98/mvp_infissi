@@ -46,7 +46,7 @@ uploads/
 public/uploads/
 
 # generated documents
-storage/
+/storage/
 
 # OS
 Thumbs.db
