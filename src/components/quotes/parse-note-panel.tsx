@@ -61,7 +61,7 @@ export function ParseNotePanel({ onUseCandidate }: Props) {
     });
   }
 
-  function useCandidate(candidate: ParseResult['candidates'][number], index: number) {
+  function applyCandidate(candidate: ParseResult['candidates'][number], index: number) {
     onUseCandidate?.({
       matchedProductId: candidate.matchedProductId,
       productName: candidate.productName,
@@ -98,7 +98,7 @@ export function ParseNotePanel({ onUseCandidate }: Props) {
 
         <div className="flex items-center justify-between gap-3">
           <p className="text-xs text-muted-foreground">
-            Suggerisce righe candidate. Clicca "Usa questa riga" per pre-compilare il form.
+            Suggerisce righe candidate. Clicca &ldquo;Usa questa riga&rdquo; per pre-compilare il form.
           </p>
           <Button type="button" onClick={parse} disabled={isPending || text.trim().length === 0}>
             {isPending ? 'Analizzo…' : 'Analizza nota'}
@@ -158,7 +158,7 @@ export function ParseNotePanel({ onUseCandidate }: Props) {
                           type="button"
                           size="sm"
                           variant={used ? 'secondary' : 'default'}
-                          onClick={() => useCandidate(candidate, index)}
+                          onClick={() => applyCandidate(candidate, index)}
                         >
                           <PlusCircle className="mr-1 h-3.5 w-3.5" />
                           {used ? 'Aggiunto ✓' : 'Usa questa riga'}
