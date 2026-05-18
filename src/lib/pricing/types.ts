@@ -84,7 +84,6 @@ export interface LineCalculation {
 export interface QuoteTotals {
   subtotal: number;
   discountTotal: number;
-  globalDiscountAmount: number;
   taxableAmount: number;
   vatTotal: number;
   grandTotal: number;

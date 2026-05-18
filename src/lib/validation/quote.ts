@@ -29,7 +29,6 @@ export const quoteCreateSchema = z.object({
   notes: z.string().max(MAX_TEXT).optional(),
   internalNotes: z.string().max(MAX_TEXT).optional(),
   vatRate: requiredNumber.default(22),
-  globalDiscountPercentage: requiredNumber.default(0),
 });
 
 export const quoteItemSchema = z.object({

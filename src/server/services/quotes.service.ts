@@ -70,7 +70,6 @@ export async function createQuote(
       notes: data.notes ?? null,
       internalNotes: data.internalNotes ?? null,
       vatRate: data.vatRate,
-      globalDiscountPercentage: data.globalDiscountPercentage,
       status: 'DRAFT',
     },
   });
@@ -283,7 +282,6 @@ export async function duplicateQuote(
         validUntil: source.validUntil,
         notes: source.notes,
         internalNotes: source.internalNotes,
-        globalDiscountPercentage: source.globalDiscountPercentage,
         vatRate: source.vatRate,
       },
     });
@@ -375,11 +373,7 @@ async function recalculateQuoteTotalsTx(
   if (!quote) throw new Error('Preventivo non trovato.');
 
   const lines = quote.items.map(itemToLineCalculation);
-  const totals = calculateQuoteTotals(
-    lines,
-    quote.globalDiscountPercentage,
-    quote.vatRate
-  );
+  const totals = calculateQuoteTotals(lines, quote.vatRate);
   const nextStatus =
     quote.items.length === 0
       ? 'DRAFT'

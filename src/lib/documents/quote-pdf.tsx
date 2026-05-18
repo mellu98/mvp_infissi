@@ -132,7 +132,6 @@ export function QuotePdf({ quote, settings }: Props) {
             <Text style={styles.boxTitle}>Riepilogo</Text>
             <Text>Righe: {quote.items.length}</Text>
             <Text>IVA: {formatNumber(quote.vatRate, 0)}%</Text>
-            <Text>Sconto globale: {formatNumber(quote.globalDiscountPercentage, 2)}%</Text>
             <Text>Stato: {quote.status}</Text>
           </View>
         </View>

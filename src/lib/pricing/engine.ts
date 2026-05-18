@@ -122,26 +122,20 @@ export function calculateQuoteLine(
 
 /**
  * Aggregate quote totals from already-calculated lines.
- * Applies an optional global discount on the taxable amount before VAT.
+ * Only per-line discounts are honoured; there is no quote-level global discount.
  */
 export function calculateQuoteTotals(
   lines: LineCalculation[],
-  globalDiscountPercentage: number = 0,
   vatRate: number = 22
 ): QuoteTotals {
   const subtotal = round2(lines.reduce((s, l) => s + l.subtotal, 0));
-  const lineDiscountTotal = round2(lines.reduce((s, l) => s + l.discountAmount, 0));
-  const taxableBeforeGlobal = round2(subtotal - lineDiscountTotal);
-  const globalDiscount = round2(
-    taxableBeforeGlobal * (clampPercentage(globalDiscountPercentage) / 100)
-  );
-  const taxableAmount = round2(taxableBeforeGlobal - globalDiscount);
+  const discountTotal = round2(lines.reduce((s, l) => s + l.discountAmount, 0));
+  const taxableAmount = round2(subtotal - discountTotal);
   const vatTotal = round2(taxableAmount * (vatRate / 100));
   const grandTotal = round2(taxableAmount + vatTotal);
   return {
     subtotal,
-    discountTotal: round2(lineDiscountTotal + globalDiscount),
-    globalDiscountAmount: globalDiscount,
+    discountTotal,
     taxableAmount,
     vatTotal,
     grandTotal,

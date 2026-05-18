@@ -551,7 +551,6 @@ async function createQuotes({
     customerId: customers.find((c) => c.id === 'cust-neri')!.id,
     status: 'ACCEPTED',
     notes: 'Preventivo demo serramenti con supporto detrazioni.',
-    globalDiscountPercentage: 3,
     actor,
     lines: [
       line(bySku.get('SER-K5000')!, {
@@ -639,7 +638,6 @@ async function createQuoteWithLines({
   customerId,
   status,
   notes,
-  globalDiscountPercentage = 0,
   actor,
   lines,
 }: {
@@ -648,7 +646,6 @@ async function createQuoteWithLines({
   customerId: string;
   status: 'DRAFT' | 'CALCULATED' | 'SENT' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED';
   notes: string;
-  globalDiscountPercentage?: number;
   actor: { id: string; email: string };
   lines: Array<{
     product: CreatedProduct;
@@ -660,7 +657,6 @@ async function createQuoteWithLines({
 }) {
   const totals = calculateQuoteTotals(
     lines.map((l) => l.calculation),
-    globalDiscountPercentage,
     22
   );
   const validUntil = new Date();
@@ -679,7 +675,6 @@ async function createQuoteWithLines({
       discountTotal: totals.discountTotal,
       vatTotal: totals.vatTotal,
       grandTotal: totals.grandTotal,
-      globalDiscountPercentage,
       vatRate: 22,
       items: {
         create: lines.map((l, index) => ({

@@ -10,6 +10,7 @@ import { customerDisplayName } from '@/components/customers/customer-display-nam
 import { QuoteItemSection, type QuoteProductOption } from '@/components/quotes/quote-item-section';
 import { QuoteStatusForm } from '@/components/quotes/quote-status-form';
 import { getCurrentCompanyId } from '@/lib/auth';
+import { unitPriceLabel } from '@/lib/categories';
 import { quoteStatusLabel, quoteStatusVariant } from '@/lib/quote-status';
 import { formatCurrency, formatDate, formatNumber } from '@/lib/utils';
 import {
@@ -44,6 +45,9 @@ export default async function QuoteDetailPage({ params }: Props) {
     pricePerSquareMeter: product.pricePerSquareMeter,
     pricePerLinearMeter: product.pricePerLinearMeter,
     minBillableQuantity: product.minBillableQuantity,
+    defaultWidthCm: product.defaultWidthCm,
+    defaultHeightCm: product.defaultHeightCm,
+    defaultLengthCm: product.defaultLengthCm,
     demoPrice: product.demoPrice,
     options: product.options.map((option) => ({
       id: option.id,
@@ -166,9 +170,11 @@ export default async function QuoteDetailPage({ params }: Props) {
                     <TableCell className="text-sm">{formatNumber(item.quantity, 2)}</TableCell>
                     <TableCell className="text-sm">
                       {formatCurrency(item.unitPrice)}
-                      {item.manualPriceOverride != null && (
-                        <span className="block text-xs text-muted-foreground">manuale</span>
-                      )}
+                      <span className="block text-xs text-muted-foreground">
+                        {item.manualPriceOverride != null
+                          ? 'manuale'
+                          : unitPriceLabel(item.product?.pricingFormula)}
+                      </span>
                     </TableCell>
                     <TableCell className="text-sm">
                       {item.optionsTotal > 0

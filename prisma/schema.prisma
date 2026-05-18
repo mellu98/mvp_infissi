@@ -305,6 +305,9 @@ model Product {
   pricePerSquareMeter Float?
   pricePerLinearMeter Float?
   minBillableQuantity Float?
+  defaultWidthCm      Float?
+  defaultHeightCm     Float?
+  defaultLengthCm     Float?
   pricingFormula      PricingFormula  @default(FIXED_PRICE)
   active              Boolean         @default(true)
   supplier            String?
@@ -348,24 +351,23 @@ model ProductOption {
 // ============================================================
 
 model Quote {
-  id                       String      @id @default(cuid())
-  companyId                String
-  company                  Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  customerId               String
-  customer                 Customer    @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  quoteNumber              String
-  status                   QuoteStatus @default(DRAFT)
-  validUntil               DateTime?
-  notes                    String?     @db.Text
-  internalNotes            String?     @db.Text
-  subtotal                 Float       @default(0)
-  discountTotal            Float       @default(0)
-  vatTotal                 Float       @default(0)
-  grandTotal               Float       @default(0)
-  globalDiscountPercentage Float       @default(0)
-  vatRate                  Float       @default(22.0)
-  createdAt                DateTime    @default(now())
-  updatedAt                DateTime    @updatedAt
+  id            String      @id @default(cuid())
+  companyId     String
+  company       Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customerId    String
+  customer      Customer    @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  quoteNumber   String
+  status        QuoteStatus @default(DRAFT)
+  validUntil    DateTime?
+  notes         String?     @db.Text
+  internalNotes String?     @db.Text
+  subtotal      Float       @default(0)
+  discountTotal Float       @default(0)
+  vatTotal      Float       @default(0)
+  grandTotal    Float       @default(0)
+  vatRate       Float       @default(22.0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   items     QuoteItem[]
   documents Document[]

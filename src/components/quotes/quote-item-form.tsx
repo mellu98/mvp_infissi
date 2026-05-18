@@ -16,6 +16,7 @@ import {
 import {
   OPTION_PRICE_TYPE_LABELS,
   PRICING_FORMULA_LABELS,
+  unitPriceLabel,
 } from '@/lib/categories';
 import { formatCurrency } from '@/lib/utils';
 import type { CandidatePrefill } from './quote-item-section';
@@ -30,6 +31,9 @@ export interface QuoteProductOption {
   pricePerSquareMeter: number | null;
   pricePerLinearMeter: number | null;
   minBillableQuantity: number | null;
+  defaultWidthCm: number | null;
+  defaultHeightCm: number | null;
+  defaultLengthCm: number | null;
   demoPrice: boolean;
   options: Array<{
     id: string;
@@ -72,6 +76,16 @@ export function QuoteItemForm({ quoteId, products, prefill }: Props) {
   const [description, setDescription] = useState(
     prefill?.productName ?? selectedProduct?.name ?? ''
   );
+  const [widthCm, setWidthCm] = useState<string>(
+    formatInitialNumber(prefill?.widthCm ?? selectedProduct?.defaultWidthCm)
+  );
+  const [heightCm, setHeightCm] = useState<string>(
+    formatInitialNumber(prefill?.heightCm ?? selectedProduct?.defaultHeightCm)
+  );
+  const [lengthCm, setLengthCm] = useState<string>(
+    formatInitialNumber(selectedProduct?.defaultLengthCm)
+  );
+  const [manualPriceOverride, setManualPriceOverride] = useState<string>('');
 
   // When key changes (parent mounts fresh on every prefill), reset from prefill
   useEffect(() => {
@@ -83,17 +97,35 @@ export function QuoteItemForm({ quoteId, products, prefill }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // only on mount — key handles remount
 
-  // Sync description when product changes normally (no prefill)
+  // When the user changes product (no active prefill), autofill from catalog
+  // so they SEE what the system will use and don't have to retype everything.
   useEffect(() => {
     if (prefill) return;
     setDescription(selectedProduct?.name ?? '');
-  }, [selectedProduct?.id, selectedProduct?.name, prefill]);
+    setWidthCm(formatInitialNumber(selectedProduct?.defaultWidthCm));
+    setHeightCm(formatInitialNumber(selectedProduct?.defaultHeightCm));
+    setLengthCm(formatInitialNumber(selectedProduct?.defaultLengthCm));
+    // Clear any stale override so it doesn't carry over to a different product.
+    setManualPriceOverride('');
+  }, [
+    selectedProduct?.id,
+    selectedProduct?.name,
+    selectedProduct?.defaultWidthCm,
+    selectedProduct?.defaultHeightCm,
+    selectedProduct?.defaultLengthCm,
+    prefill,
+  ]);
 
   useEffect(() => {
     if (!state.ok) return;
     formRef.current?.reset();
-    setProductId(products[0]?.id ?? '');
-    setDescription(products[0]?.name ?? '');
+    const fallback = products[0];
+    setProductId(fallback?.id ?? '');
+    setDescription(fallback?.name ?? '');
+    setWidthCm(formatInitialNumber(fallback?.defaultWidthCm));
+    setHeightCm(formatInitialNumber(fallback?.defaultHeightCm));
+    setLengthCm(formatInitialNumber(fallback?.defaultLengthCm));
+    setManualPriceOverride('');
   }, [state.ok, products]);
 
   return (
@@ -125,15 +157,11 @@ export function QuoteItemForm({ quoteId, products, prefill }: Props) {
                   </option>
                 ))}
               </Select>
-              {selectedProduct && (
-                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                  <span>{PRICING_FORMULA_LABELS[selectedProduct.pricingFormula]}</span>
-                  <span>•</span>
-                  <span>{formatProductPrice(selectedProduct)}</span>
-                  {selectedProduct.demoPrice && <Badge variant="warning">DEMO</Badge>}
-                </div>
-              )}
             </div>
+
+            {selectedProduct && (
+              <ProductCatalogInfo product={selectedProduct} />
+            )}
 
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="description">Descrizione riga</Label>
@@ -158,16 +186,42 @@ export function QuoteItemForm({ quoteId, products, prefill }: Props) {
             <ControlledNumberField
               id="widthCm"
               label="Larghezza (cm)"
-              initialValue={prefill?.widthCm ?? null}
+              value={widthCm}
+              onChange={setWidthCm}
             />
             <ControlledNumberField
               id="heightCm"
               label="Altezza (cm)"
-              initialValue={prefill?.heightCm ?? null}
+              value={heightCm}
+              onChange={setHeightCm}
             />
-            <NumberField id="lengthCm" label="Lunghezza (cm)" />
+            <ControlledNumberField
+              id="lengthCm"
+              label="Lunghezza (cm)"
+              value={lengthCm}
+              onChange={setLengthCm}
+            />
             <NumberField id="discountPercentage" label="Sconto riga (%)" defaultValue="0" min="0" max="100" />
-            <NumberField id="manualPriceOverride" label="Override prezzo unitario (€)" min="0" />
+            <div className="space-y-2">
+              <Label htmlFor="manualPriceOverride">Override prezzo (€)</Label>
+              <Input
+                id="manualPriceOverride"
+                name="manualPriceOverride"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder={
+                  selectedProduct
+                    ? `Lascia vuoto per usare ${unitPriceLabel(selectedProduct.pricingFormula).toLowerCase()}`
+                    : 'Inserisci un prezzo manuale'
+                }
+                value={manualPriceOverride}
+                onChange={(event) => setManualPriceOverride(event.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Se compilato sovrascrive il prezzo da catalogo solo su questa riga.
+              </p>
+            </div>
           </div>
 
           {selectedProduct?.options.length ? (
@@ -226,20 +280,58 @@ export function QuoteItemForm({ quoteId, products, prefill }: Props) {
   );
 }
 
+function ProductCatalogInfo({ product }: { product: QuoteProductOption }) {
+  return (
+    <div className="space-y-2 rounded-lg border bg-muted/40 p-3 text-xs md:col-span-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant="secondary">{PRICING_FORMULA_LABELS[product.pricingFormula]}</Badge>
+        <span className="font-medium text-foreground">
+          {unitPriceLabel(product.pricingFormula)}: {formatProductPrice(product)}
+        </span>
+        {product.demoPrice && <Badge variant="warning">DEMO</Badge>}
+      </div>
+      <ul className="space-y-0.5 text-muted-foreground">
+        {product.minBillableQuantity && product.minBillableQuantity > 0 ? (
+          <li>Minimo fatturabile: {product.minBillableQuantity} mq</li>
+        ) : null}
+        {hasDefaultDimensions(product) ? (
+          <li>
+            Dimensioni standard pre-compilate
+            {product.defaultWidthCm != null && product.defaultHeightCm != null
+              ? `: ${product.defaultWidthCm}×${product.defaultHeightCm} cm`
+              : ''}
+            {product.defaultLengthCm != null
+              ? ` · L ${product.defaultLengthCm} cm`
+              : ''}
+          </li>
+        ) : null}
+      </ul>
+    </div>
+  );
+}
+
 function ControlledNumberField({
   id,
   label,
   initialValue,
+  value,
+  onChange,
   min,
   max,
 }: {
   id: string;
   label: string;
   initialValue?: number | null;
+  value?: string;
+  onChange?: (next: string) => void;
   min?: string;
   max?: string;
 }) {
-  const [value, setValue] = useState(initialValue != null ? String(initialValue) : '');
+  const isExternallyControlled = value !== undefined && onChange !== undefined;
+  const [internal, setInternal] = useState(
+    initialValue != null ? String(initialValue) : ''
+  );
+  const currentValue = isExternallyControlled ? (value as string) : internal;
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
@@ -250,8 +342,10 @@ function ControlledNumberField({
         step="0.01"
         min={min}
         max={max}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
+        value={currentValue}
+        onChange={(e) =>
+          isExternallyControlled ? onChange!(e.target.value) : setInternal(e.target.value)
+        }
       />
     </div>
   );
@@ -283,6 +377,18 @@ function NumberField({
         defaultValue={defaultValue}
       />
     </div>
+  );
+}
+
+function formatInitialNumber(value: number | null | undefined): string {
+  return value != null ? String(value) : '';
+}
+
+function hasDefaultDimensions(product: QuoteProductOption): boolean {
+  return (
+    product.defaultWidthCm != null ||
+    product.defaultHeightCm != null ||
+    product.defaultLengthCm != null
   );
 }
 

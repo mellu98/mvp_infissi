@@ -54,7 +54,6 @@ export interface PdfQuote {
   discountTotal: number;
   vatTotal: number;
   grandTotal: number;
-  globalDiscountPercentage: number;
   vatRate: number;
   createdAt: Date;
   customer: PdfCustomer;

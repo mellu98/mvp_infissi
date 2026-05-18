@@ -115,6 +115,29 @@ export function ProductForm({ initial, action, submitLabel = 'Salva prodotto' }:
       </Card>
 
       <Card>
+        <CardHeader>
+          <CardTitle>Dimensioni standard (opzionali)</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Se compilate, vengono pre-impostate quando il prodotto viene aggiunto a un preventivo.
+          </p>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-3">
+          <div className="space-y-2">
+            <Label htmlFor="defaultWidthCm">Larghezza (cm)</Label>
+            <Input id="defaultWidthCm" name="defaultWidthCm" type="number" step="0.1" defaultValue={initial?.defaultWidthCm ?? ''} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="defaultHeightCm">Altezza (cm)</Label>
+            <Input id="defaultHeightCm" name="defaultHeightCm" type="number" step="0.1" defaultValue={initial?.defaultHeightCm ?? ''} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="defaultLengthCm">Lunghezza (cm)</Label>
+            <Input id="defaultLengthCm" name="defaultLengthCm" type="number" step="0.1" defaultValue={initial?.defaultLengthCm ?? ''} />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader><CardTitle>Note tecniche</CardTitle></CardHeader>
         <CardContent>
           <Textarea name="technicalNotes" rows={3} defaultValue={initial?.technicalNotes ?? ''} />

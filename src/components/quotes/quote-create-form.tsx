@@ -93,19 +93,6 @@ export function QuoteCreateForm({
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="globalDiscountPercentage">Sconto globale (%)</Label>
-            <Input
-              id="globalDiscountPercentage"
-              name="globalDiscountPercentage"
-              type="number"
-              min={0}
-              max={100}
-              step="0.01"
-              defaultValue={0}
-            />
-          </div>
-
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="notes">Note cliente</Label>
             <Textarea id="notes" name="notes" rows={3} />

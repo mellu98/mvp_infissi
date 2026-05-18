@@ -67,7 +67,6 @@ async function loadQuotePdfData(companyId: string, quoteId: string) {
       discountTotal: quote.discountTotal,
       vatTotal: quote.vatTotal,
       grandTotal: quote.grandTotal,
-      globalDiscountPercentage: quote.globalDiscountPercentage,
       vatRate: quote.vatRate,
       createdAt: quote.createdAt,
       customerId: quote.customerId,
