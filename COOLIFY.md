@@ -85,15 +85,15 @@ Quel volume persiste tra redeploy.
 
 **Appwrite (opzionale)**: lasciare `STORAGE_PROVIDER=local` per il MVP. L'adapter `AppwriteStorageProvider` è uno stub volutamente non implementato (vedi `src/lib/storage/appwrite.ts`).
 
-### 9. Esegui migrazioni Prisma
+### 9. Migrazioni Prisma
 
-Una tantum dopo il primo deploy. Da Coolify → **Application → Terminal**:
+**Automatiche al boot del container.** Il `Dockerfile` esegue `npx prisma migrate deploy` prima di avviare il server: ogni redeploy applica le migrazioni pendenti dalla cartella `prisma/migrations/`. Se la migrazione fallisce il container esce e Coolify segnala l'errore — meglio che girare con uno schema disallineato.
+
+Esecuzione manuale (utile solo per debug o se il container è già up). Da Coolify → **Application → Terminal**:
 
 ```bash
 npm run db:deploy
 ```
-
-Genera le tabelle dalla migration iniziale `prisma/migrations/20260517120000_init/`.
 
 ### 10. Seed iniziale (solo demo)
 

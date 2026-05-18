@@ -39,4 +39,6 @@ RUN mkdir -p /app/uploads && chown -R nextjs:nodejs /app/uploads
 
 USER nextjs
 EXPOSE 3000
-CMD ["node", "server.js"]
+# Apply pending Prisma migrations at boot, then start the server.
+# If migration fails the container exits — better than running with a stale schema.
+CMD ["sh", "-c", "npx prisma migrate deploy && node server.js"]
