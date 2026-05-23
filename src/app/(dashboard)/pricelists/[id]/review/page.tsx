@@ -91,7 +91,6 @@ export default async function ReviewPricelistPage({ params }: Props) {
                       sku: c.sku,
                       category: c.category,
                       basePrice: c.basePrice,
-                      pricePerSquareMeter: c.pricePerSquareMeter,
                       pricePerLinearMeter: c.pricePerLinearMeter,
                       pricingFormula: c.pricingFormula,
                       confidence: c.confidence,

@@ -72,22 +72,12 @@ export default async function ProductDetailPage({ params }: Props) {
           <CardHeader><CardTitle className="text-sm">Prezzo base</CardTitle></CardHeader>
           <CardContent>
             <div className="text-lg font-semibold">{formatCurrency(product.basePrice)}</div>
-            {product.pricePerSquareMeter != null && (
-              <div className="text-xs text-muted-foreground">{formatCurrency(product.pricePerSquareMeter)} / mq</div>
-            )}
             {product.pricePerLinearMeter != null && (
               <div className="text-xs text-muted-foreground">{formatCurrency(product.pricePerLinearMeter)} / m</div>
             )}
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader><CardTitle className="text-sm">Minimo fatturabile</CardTitle></CardHeader>
-          <CardContent>
-            <div className="text-lg font-semibold">
-              {product.minBillableQuantity != null ? `${product.minBillableQuantity} mq` : '—'}
-            </div>
-          </CardContent>
-        </Card>
+
       </div>
 
       <Card>

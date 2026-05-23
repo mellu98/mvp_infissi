@@ -14,19 +14,11 @@ export const candidateRowUpdateSchema = z.object({
   sku: z.string().optional(),
   description: z.string().optional(),
   basePrice: z.preprocess((v) => (v === '' || v == null ? null : Number(v)), z.number().nullable()),
-  pricePerSquareMeter: z.preprocess(
-    (v) => (v === '' || v == null ? null : Number(v)),
-    z.number().nullable()
-  ),
   pricePerLinearMeter: z.preprocess(
     (v) => (v === '' || v == null ? null : Number(v)),
     z.number().nullable()
   ),
   unit: z.string().optional(),
-  minBillableQuantity: z.preprocess(
-    (v) => (v === '' || v == null ? null : Number(v)),
-    z.number().nullable()
-  ),
   color: z.string().optional(),
   material: z.string().optional(),
   variant: z.string().optional(),

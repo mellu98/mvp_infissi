@@ -17,7 +17,6 @@ export const productCategoryEnum = z.enum([
   'PERSIANA',
   'MOSQUITO_SCREEN',
   'ACCESSORY',
-  'INSTALLATION',
   'TRANSPORT',
   'TAX_SUPPORT',
   'OTHER',
@@ -25,9 +24,7 @@ export const productCategoryEnum = z.enum([
 
 export const pricingFormulaEnum = z.enum([
   'FIXED_PRICE',
-  'PER_SQUARE_METER',
   'PER_LINEAR_METER',
-  'BASE_PLUS_AREA',
   'BASE_PLUS_OPTIONS',
   'CUSTOM_FORMULA',
 ]);
@@ -41,9 +38,7 @@ export const productCreateSchema = z.object({
   color: z.string().optional(),
   unit: z.string().default('pz'),
   basePrice: positiveNumber.default(0),
-  pricePerSquareMeter: numberOrNull,
   pricePerLinearMeter: numberOrNull,
-  minBillableQuantity: numberOrNull,
   defaultWidthCm: numberOrNull,
   defaultHeightCm: numberOrNull,
   defaultLengthCm: numberOrNull,

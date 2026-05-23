@@ -24,7 +24,6 @@ interface RowProps {
     sku: string | null;
     category: string;
     basePrice: number | null;
-    pricePerSquareMeter: number | null;
     pricePerLinearMeter: number | null;
     pricingFormula: string;
     confidence: number;
@@ -68,7 +67,6 @@ export function ReviewRow({ pricelistId, candidate }: RowProps) {
               {Object.entries(PRICING_FORMULA_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </Select>
             <Input name="basePrice" type="number" step="0.01" defaultValue={candidate.basePrice ?? ''} placeholder="Base €" />
-            <Input name="pricePerSquareMeter" type="number" step="0.01" defaultValue={candidate.pricePerSquareMeter ?? ''} placeholder="€/mq" />
             <div className="flex gap-2 md:col-span-6">
               <Button type="submit" size="sm" disabled={pending}>Salva</Button>
               <Button type="button" variant="ghost" size="sm" onClick={() => setEditing(false)}>Annulla</Button>
@@ -97,9 +95,6 @@ export function ReviewRow({ pricelistId, candidate }: RowProps) {
       <TableCell className="text-sm">{PRICING_FORMULA_LABELS[candidate.pricingFormula]}</TableCell>
       <TableCell className="text-sm">
         {candidate.basePrice != null ? `${candidate.basePrice.toFixed(2)} €` : '—'}
-        {candidate.pricePerSquareMeter != null && (
-          <div className="text-xs text-muted-foreground">+ {candidate.pricePerSquareMeter.toFixed(2)} €/mq</div>
-        )}
       </TableCell>
       <TableCell>
         <ConfidenceBadge value={candidate.confidence} />

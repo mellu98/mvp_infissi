@@ -90,16 +90,8 @@ export function ProductForm({ initial, action, submitLabel = 'Salva prodotto' }:
             <Input id="basePrice" name="basePrice" type="number" step="0.01" defaultValue={initial?.basePrice ?? 0} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="pricePerSquareMeter">Prezzo al mq (€)</Label>
-            <Input id="pricePerSquareMeter" name="pricePerSquareMeter" type="number" step="0.01" defaultValue={initial?.pricePerSquareMeter ?? ''} />
-          </div>
-          <div className="space-y-2">
             <Label htmlFor="pricePerLinearMeter">Prezzo al metro lineare (€)</Label>
             <Input id="pricePerLinearMeter" name="pricePerLinearMeter" type="number" step="0.01" defaultValue={initial?.pricePerLinearMeter ?? ''} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="minBillableQuantity">Minimo fatturabile (mq)</Label>
-            <Input id="minBillableQuantity" name="minBillableQuantity" type="number" step="0.01" defaultValue={initial?.minBillableQuantity ?? ''} />
           </div>
           <div className="flex items-end gap-3">
             <label className="flex items-center gap-2 text-sm">

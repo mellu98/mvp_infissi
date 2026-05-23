@@ -79,13 +79,9 @@ export default async function ProductsPage({ searchParams }: PageProps) {
                     <TableCell className="text-sm">{PRODUCT_CATEGORY_LABELS[p.category]}</TableCell>
                     <TableCell className="text-sm">{PRICING_FORMULA_LABELS[p.pricingFormula]}</TableCell>
                     <TableCell className="text-sm">
-                      {p.pricingFormula === 'PER_SQUARE_METER' && p.pricePerSquareMeter != null
-                        ? `${formatCurrency(p.pricePerSquareMeter)}/mq`
-                        : p.pricingFormula === 'PER_LINEAR_METER' && p.pricePerLinearMeter != null
-                          ? `${formatCurrency(p.pricePerLinearMeter)}/m`
-                          : p.pricingFormula === 'BASE_PLUS_AREA'
-                            ? `${formatCurrency(p.basePrice)} + ${p.pricePerSquareMeter != null ? formatCurrency(p.pricePerSquareMeter) + '/mq' : ''}`
-                            : formatCurrency(p.basePrice)}
+                      {p.pricingFormula === 'PER_LINEAR_METER' && p.pricePerLinearMeter != null
+                        ? `${formatCurrency(p.pricePerLinearMeter)}/m`
+                        : formatCurrency(p.basePrice)}
                     </TableCell>
                     <TableCell>
                       {p.active ? <Badge variant="success">Attivo</Badge> : <Badge variant="secondary">Inattivo</Badge>}
