@@ -83,14 +83,15 @@ export function QuoteCreateForm({
 
           <div className="space-y-2">
             <Label htmlFor="vatRate">IVA (%)</Label>
-            <Input
+            <Select
               id="vatRate"
               name="vatRate"
-              type="number"
-              min={0}
-              step="0.01"
-              defaultValue={defaultVatRate}
-            />
+              defaultValue={String(defaultVatRate)}
+            >
+              <option value="0">0%</option>
+              <option value="10">10%</option>
+              <option value="22">22%</option>
+            </Select>
           </div>
 
           <div className="space-y-2 md:col-span-2">

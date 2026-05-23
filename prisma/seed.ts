@@ -259,53 +259,48 @@ async function createCustomers() {
 async function createProducts(): Promise<CreatedProduct[]> {
   const products: SeedProduct[] = [
     product('prod-zan-avv-lat-bia', 'ZAN-AVV-LAT-BIA', 'Zanzariera avvolgibile laterale bianca', 'MOSQUITO_SCREEN', {
-      pricingFormula: 'PER_SQUARE_METER',
-      pricePerSquareMeter: 45,
-      minBillableQuantity: 1.5,
+      pricingFormula: 'FIXED_PRICE',
+      basePrice: 180,
       defaultWidthCm: 120,
       defaultHeightCm: 240,
       material: 'Alluminio',
       color: 'Bianco',
       options: [
         option('opt-zan-guida-bassa', 'Guida bassa', 18, 'FIXED'),
-        option('opt-zan-rete-pet', 'Rete pet screen', 7, 'PER_SQUARE_METER'),
+        option('opt-zan-rete-pet', 'Rete pet screen', 35, 'FIXED'),
       ],
     }),
     product('prod-zan-plisse', 'ZAN-PLISSE-ANTR', 'Zanzariera plissé antracite', 'MOSQUITO_SCREEN', {
-      pricingFormula: 'PER_SQUARE_METER',
-      pricePerSquareMeter: 62,
-      minBillableQuantity: 1.8,
+      pricingFormula: 'FIXED_PRICE',
+      basePrice: 250,
       defaultWidthCm: 120,
       defaultHeightCm: 240,
       material: 'Alluminio',
       color: 'Antracite',
     }),
     product('prod-ser-k5000', 'SER-K5000', 'Serramento K5000 PVC tripla guarnizione', 'WINDOW', {
-      pricingFormula: 'BASE_PLUS_AREA',
-      basePrice: 180,
-      pricePerSquareMeter: 210,
+      pricingFormula: 'FIXED_PRICE',
+      basePrice: 600,
       defaultWidthCm: 100,
       defaultHeightCm: 150,
       material: 'PVC',
       color: 'Bianco',
       options: [
         option('opt-ser-anta-ribalta', 'Anta ribalta', 45, 'FIXED'),
-        option('opt-ser-vetro-sicurezza', 'Vetro sicurezza', 28, 'PER_SQUARE_METER'),
+        option('opt-ser-vetro-sicurezza', 'Vetro sicurezza', 85, 'FIXED'),
       ],
     }),
     product('prod-ser-coveral', 'SER-COVERAL', 'Serramento Coveral PVC-Alluminio', 'WINDOW', {
-      pricingFormula: 'BASE_PLUS_AREA',
-      basePrice: 260,
-      pricePerSquareMeter: 320,
+      pricingFormula: 'FIXED_PRICE',
+      basePrice: 900,
       defaultWidthCm: 100,
       defaultHeightCm: 150,
       material: 'PVC-Alluminio',
       color: 'Bianco',
     }),
     product('prod-ser-termalmix', 'SER-TERMALMIX', 'Serramento Termalmix taglio termico', 'WINDOW', {
-      pricingFormula: 'BASE_PLUS_AREA',
-      basePrice: 300,
-      pricePerSquareMeter: 380,
+      pricingFormula: 'FIXED_PRICE',
+      basePrice: 1000,
       defaultWidthCm: 100,
       defaultHeightCm: 150,
       material: 'Alluminio',
@@ -342,25 +337,22 @@ async function createProducts(): Promise<CreatedProduct[]> {
       material: 'Laccato',
     }),
     product('prod-tap-alu-1455', 'TAP-ALU-1455', 'Tapparella alluminio 14x55', 'SHUTTER', {
-      pricingFormula: 'PER_SQUARE_METER',
-      pricePerSquareMeter: 72,
-      minBillableQuantity: 1.2,
+      pricingFormula: 'FIXED_PRICE',
+      basePrice: 200,
       defaultWidthCm: 100,
       defaultHeightCm: 150,
       material: 'Alluminio',
     }),
     product('prod-tap-pvc', 'TAP-PVC', 'Tapparella PVC standard', 'SHUTTER', {
-      pricingFormula: 'PER_SQUARE_METER',
-      pricePerSquareMeter: 38,
-      minBillableQuantity: 1.2,
+      pricingFormula: 'FIXED_PRICE',
+      basePrice: 120,
       defaultWidthCm: 100,
       defaultHeightCm: 150,
       material: 'PVC',
     }),
     product('prod-pers-vogue', 'PER-VOGUE-ALU', 'Persiana Vogue alluminio', 'PERSIANA', {
-      pricingFormula: 'PER_SQUARE_METER',
-      pricePerSquareMeter: 240,
-      minBillableQuantity: 1,
+      pricingFormula: 'FIXED_PRICE',
+      basePrice: 600,
       defaultWidthCm: 100,
       defaultHeightCm: 150,
       material: 'Alluminio',
@@ -374,18 +366,6 @@ async function createProducts(): Promise<CreatedProduct[]> {
       pricingFormula: 'FIXED_PRICE',
       basePrice: 32,
       unit: 'pz',
-    }),
-    product('prod-posa-serramento', 'POSA-SERR', 'Posa serramento', 'INSTALLATION', {
-      pricingFormula: 'FIXED_PRICE',
-      basePrice: 120,
-      unit: 'pz',
-      demoPrice: false,
-    }),
-    product('prod-posa-porta', 'POSA-PORTA', 'Posa porta interna o blindata', 'INSTALLATION', {
-      pricingFormula: 'FIXED_PRICE',
-      basePrice: 180,
-      unit: 'pz',
-      demoPrice: false,
     }),
     product('prod-trasporto', 'TRASP-STD', 'Trasporto in provincia di Pavia', 'TRANSPORT', {
       pricingFormula: 'FIXED_PRICE',
@@ -471,14 +451,12 @@ async function createPricelists() {
       candidates: {
         create: [
           candidate('Zanzariera avvolgibile laterale bianca', 'ZAN-AVV-LAT-BIA', 'MOSQUITO_SCREEN', {
-            pricePerSquareMeter: 45,
-            minBillableQuantity: 1.5,
-            pricingFormula: 'PER_SQUARE_METER',
+            basePrice: 180,
+            pricingFormula: 'FIXED_PRICE',
           }),
           candidate('Zanzariera plissé antracite', 'ZAN-PLISSE-ANTR', 'MOSQUITO_SCREEN', {
-            pricePerSquareMeter: 62,
-            minBillableQuantity: 1.8,
-            pricingFormula: 'PER_SQUARE_METER',
+            basePrice: 250,
+            pricingFormula: 'FIXED_PRICE',
           }),
         ],
       },
@@ -501,9 +479,8 @@ async function createPricelists() {
       candidates: {
         create: [
           candidate('Serramento K5000 PVC tripla guarnizione', 'SER-K5000', 'WINDOW', {
-            basePrice: 180,
-            pricePerSquareMeter: 210,
-            pricingFormula: 'BASE_PLUS_AREA',
+            basePrice: 600,
+            pricingFormula: 'FIXED_PRICE',
             approved: true,
           }),
           candidate('Serramento ignoto da validare', 'TMP-001', 'WINDOW', {
@@ -564,8 +541,7 @@ async function createQuotes({
     notes: 'Preventivo demo zanzariere soggiorno e camera.',
     actor,
     lines: [
-      line(bySku.get('ZAN-AVV-LAT-BIA')!, { quantity: 3, widthCm: 120, heightCm: 240 }),
-      line(bySku.get('POSA-SERR')!, { quantity: 3 }),
+      line(bySku.get('ZAN-AVV-LAT-BIA')!, { quantity: 3 }),
     ],
   });
 
@@ -579,8 +555,6 @@ async function createQuotes({
     lines: [
       line(bySku.get('SER-K5000')!, {
         quantity: 2,
-        widthCm: 80,
-        heightCm: 120,
         selectedOptions: [{ id: 'opt-ser-anta-ribalta', name: 'Anta ribalta', price: 45, priceType: 'FIXED' }],
       }),
       line(bySku.get('SERV-DETR')!, { quantity: 1 }),
@@ -602,7 +576,6 @@ async function createQuotes({
           { id: 'opt-porta-scorrevole', name: 'Kit scorrevole interno muro', price: 260, priceType: 'FIXED' },
         ],
       }),
-      line(bySku.get('POSA-PORTA')!, { quantity: 4 }),
     ],
   });
 }

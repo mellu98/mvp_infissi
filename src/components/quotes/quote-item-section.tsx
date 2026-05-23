@@ -25,29 +25,28 @@ interface Props {
  * When the user clicks "Usa questa riga" on a parsed candidate, the form
  * is pre-filled with the extracted product, quantity, and dimensions.
  */
+const SHOW_NOTE_PARSER = false;
+
 export function QuoteItemSection({ quoteId, products }: Props) {
   const [prefill, setPrefill] = useState<CandidatePrefill | undefined>(undefined);
   const [prefillKey, setPrefillKey] = useState(0);
 
   function handleUseCandidate(candidate: CandidatePrefill) {
     setPrefill(candidate);
-    // Incrementing key forces QuoteItemForm to remount so defaultValues apply cleanly.
     setPrefillKey((k) => k + 1);
-    // Scroll form into view on mobile
     document.getElementById('quote-item-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+    <div className={SHOW_NOTE_PARSER ? "grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]" : "grid gap-6"}>
       <div id="quote-item-form">
         <QuoteItemForm
           key={prefillKey}
           quoteId={quoteId}
           products={products}
-          prefill={prefill}
         />
       </div>
-      <ParseNotePanel onUseCandidate={handleUseCandidate} />
+      {SHOW_NOTE_PARSER && <ParseNotePanel onUseCandidate={handleUseCandidate} />}
     </div>
   );
 }

@@ -257,69 +257,24 @@ function buildExplanation(i: ExplanationInput): string {
     }).format(n);
 
   const parts: string[] = [];
-  parts.push(`${i.product.name}.`);
-
-  if (i.manualOverrideApplied) {
-    parts.push(`Prezzo unitario manuale: ${eur(i.unitPrice)}.`);
-  } else {
-    switch (i.product.pricingFormula) {
-      case 'FIXED_PRICE':
-        parts.push(`Prezzo fisso unitario: ${eur(i.unitPrice)}.`);
-        break;
-      case 'PER_SQUARE_METER':
-        if (i.billableAreaMq != null) {
-          parts.push(
-            `Area ${num(i.billableAreaMq, 2)} mq × tariffa = ${eur(i.unitPrice)}.`
-          );
-        } else {
-          parts.push(`Prezzo unitario: ${eur(i.unitPrice)}.`);
-        }
-        break;
-      case 'PER_LINEAR_METER':
-        if (i.linearMeters != null) {
-          parts.push(
-            `Lunghezza ${num(i.linearMeters, 2)} m × tariffa = ${eur(i.unitPrice)}.`
-          );
-        } else {
-          parts.push(`Prezzo unitario: ${eur(i.unitPrice)}.`);
-        }
-        break;
-      case 'BASE_PLUS_AREA':
-        if (i.areaMq != null) {
-          parts.push(
-            `Prezzo base + area ${num(i.areaMq, 2)} mq = ${eur(i.unitPrice)}.`
-          );
-        } else {
-          parts.push(`Prezzo unitario: ${eur(i.unitPrice)}.`);
-        }
-        break;
-      case 'BASE_PLUS_OPTIONS':
-        parts.push(`Prezzo base + optional inclusi = ${eur(i.unitPrice)}.`);
-        break;
-      default:
-        parts.push(`Prezzo unitario: ${eur(i.unitPrice)}.`);
-    }
-  }
+  parts.push(`${i.product.name} — ${eur(i.unitPrice)}`);
 
   if (i.quantity !== 1) {
-    parts.push(`Quantità: ${num(i.quantity, 2)}.`);
+    parts.push(`× ${num(i.quantity, 2)}`);
   }
 
   if (i.optionsTotal > 0 && i.optionDetails.length > 0) {
     const opts = i.optionDetails
       .map((d) => `${d.name} ${eur(d.amount)}`)
       .join(', ');
-    parts.push(`Optional aggiuntivi: ${opts}.`);
+    parts.push(`+ optional: ${opts}`);
   }
 
-  parts.push(`Imponibile riga: ${eur(i.subtotal)}.`);
   if (i.discountAmount > 0) {
-    parts.push(
-      `Sconto ${num(i.discountPct, 2)}%: −${eur(i.discountAmount)} → ${eur(i.taxableAmount)}.`
-    );
+    parts.push(`− sconto ${num(i.discountPct, 2)}%`);
   }
-  parts.push(`IVA ${num(i.vatRate, 0)}%: ${eur(i.vatAmount)}.`);
-  parts.push(`Totale riga: ${eur(i.total)}.`);
 
-  return parts.join(' ');
+  parts.push(`= ${eur(i.total)}`);
+
+  return parts.join(' · ');
 }

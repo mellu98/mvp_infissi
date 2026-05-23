@@ -2,21 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { calculateQuoteLine } from '@/lib/pricing';
 
 describe('Calculation explanation', () => {
-  it('mentions area and VAT for PER_SQUARE_METER lines', () => {
+  it('mentions product and total for FIXED_PRICE lines', () => {
     const res = calculateQuoteLine({
       product: {
         name: 'Zanzariera avvolgibile laterale bianca',
-        basePrice: 0,
-        pricePerSquareMeter: 45,
-        pricingFormula: 'PER_SQUARE_METER',
+        basePrice: 180,
+        pricingFormula: 'FIXED_PRICE',
       },
-      widthCm: 120,
-      heightCm: 240,
     });
     expect(res.explanation).toContain('Zanzariera');
-    expect(res.explanation).toContain('mq');
-    expect(res.explanation).toContain('IVA');
-    expect(res.explanation).toContain('Totale riga');
+    expect(res.explanation).toContain('180,00');
+    expect(res.explanation).toContain('=');
   });
 
   it('mentions discount when applied', () => {
@@ -24,7 +20,7 @@ describe('Calculation explanation', () => {
       product: { name: 'X', basePrice: 1000, pricingFormula: 'FIXED_PRICE' },
       discountPercentage: 10,
     });
-    expect(res.explanation).toMatch(/Sconto/);
+    expect(res.explanation).toMatch(/sconto/);
   });
 
   it('mentions optional when present', () => {
@@ -35,11 +31,11 @@ describe('Calculation explanation', () => {
     expect(res.explanation).toMatch(/Maniglia premium/);
   });
 
-  it('mentions manual override when applied', () => {
+  it('mentions fixed unit price when no override', () => {
     const res = calculateQuoteLine({
-      product: { name: 'X', basePrice: 100, pricingFormula: 'FIXED_PRICE' },
-      manualPriceOverride: 200,
+      product: { name: 'X', basePrice: 200, pricingFormula: 'FIXED_PRICE' },
     });
-    expect(res.explanation).toMatch(/manuale/i);
+    expect(res.explanation).toContain('200,00');
+    expect(res.explanation).toContain('=');
   });
 });

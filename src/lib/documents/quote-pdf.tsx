@@ -49,8 +49,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', borderBottom: '1 solid #e5e7eb' },
   headerRow: { backgroundColor: '#f3f4f6', fontWeight: 700 },
   cell: { padding: 6, borderRight: '1 solid #e5e7eb' },
-  desc: { width: '36%' },
-  measures: { width: '16%' },
+  desc: { width: '52%' },
   qty: { width: '8%', textAlign: 'right' },
   money: { width: '13.333%', textAlign: 'right' },
   noRightBorder: { borderRight: 0 },
@@ -139,7 +138,6 @@ export function QuotePdf({ quote, settings }: Props) {
         <View style={[styles.section, styles.table]}>
           <View style={[styles.row, styles.headerRow]}>
             <Text style={[styles.cell, styles.desc]}>Descrizione</Text>
-            <Text style={[styles.cell, styles.measures]}>Misure</Text>
             <Text style={[styles.cell, styles.qty]}>Q.tà</Text>
             <Text style={[styles.cell, styles.money]}>Unitario</Text>
             <Text style={[styles.cell, styles.money]}>Optional</Text>
@@ -149,11 +147,7 @@ export function QuotePdf({ quote, settings }: Props) {
             <View key={`${item.description}-${index}`} style={styles.row} wrap={false}>
               <View style={[styles.cell, styles.desc]}>
                 <Text>{item.description}</Text>
-                {item.calculationExplanation ? (
-                  <Text style={styles.explanation}>{item.calculationExplanation}</Text>
-                ) : null}
               </View>
-              <Text style={[styles.cell, styles.measures]}>{formatMeasures(item)}</Text>
               <Text style={[styles.cell, styles.qty]}>{formatNumber(item.quantity, 2)}</Text>
               <Text style={[styles.cell, styles.money]}>{formatCurrency(item.unitPrice)}</Text>
               <Text style={[styles.cell, styles.money]}>{formatCurrency(item.optionsTotal)}</Text>
@@ -207,12 +201,4 @@ export function QuotePdf({ quote, settings }: Props) {
   );
 }
 
-function formatMeasures(item: PdfQuote['items'][number]): string {
-  const parts: string[] = [];
-  if (item.widthCm && item.heightCm) {
-    parts.push(`${formatNumber(item.widthCm, 0)}×${formatNumber(item.heightCm, 0)} cm`);
-  }
-  if (item.lengthCm) parts.push(`${formatNumber(item.lengthCm, 0)} cm`);
-  if (item.areaMq) parts.push(`${formatNumber(item.areaMq, 2)} mq`);
-  return parts.join(' · ') || '—';
-}
+

@@ -10,7 +10,7 @@ import { customerDisplayName } from '@/components/customers/customer-display-nam
 import { QuoteItemSection, type QuoteProductOption } from '@/components/quotes/quote-item-section';
 import { QuoteStatusForm } from '@/components/quotes/quote-status-form';
 import { getCurrentCompanyId } from '@/lib/auth';
-import { unitPriceLabel } from '@/lib/categories';
+
 import { quoteStatusLabel, quoteStatusVariant } from '@/lib/quote-status';
 import { formatCurrency, formatDate, formatNumber } from '@/lib/utils';
 import {
@@ -35,27 +35,29 @@ export default async function QuoteDetailPage({ params }: Props) {
   ]);
   if (!quote) notFound();
 
-  const productOptions: QuoteProductOption[] = products.map((product) => ({
-    id: product.id,
-    sku: product.sku,
-    name: product.name,
-    pricingFormula: product.pricingFormula,
-    unit: product.unit,
-    basePrice: product.basePrice,
-    pricePerSquareMeter: product.pricePerSquareMeter,
-    pricePerLinearMeter: product.pricePerLinearMeter,
-    minBillableQuantity: product.minBillableQuantity,
-    defaultWidthCm: product.defaultWidthCm,
-    defaultHeightCm: product.defaultHeightCm,
-    defaultLengthCm: product.defaultLengthCm,
-    demoPrice: product.demoPrice,
-    options: product.options.map((option) => ({
-      id: option.id,
-      name: option.name,
-      price: option.price,
-      priceType: option.priceType,
-    })),
-  }));
+  const productOptions: QuoteProductOption[] = products
+    .filter((product) => product.category !== 'INSTALLATION')
+    .map((product) => ({
+      id: product.id,
+      sku: product.sku,
+      name: product.name,
+      pricingFormula: product.pricingFormula,
+      unit: product.unit,
+      basePrice: product.basePrice,
+      pricePerSquareMeter: product.pricePerSquareMeter,
+      pricePerLinearMeter: product.pricePerLinearMeter,
+      minBillableQuantity: product.minBillableQuantity,
+      defaultWidthCm: product.defaultWidthCm,
+      defaultHeightCm: product.defaultHeightCm,
+      defaultLengthCm: product.defaultLengthCm,
+      demoPrice: product.demoPrice,
+      options: product.options.map((option) => ({
+        id: option.id,
+        name: option.name,
+        price: option.price,
+        priceType: option.priceType,
+      })),
+    }));
 
   async function deleteQuote() {
     'use server';
@@ -142,7 +144,6 @@ export default async function QuoteDetailPage({ params }: Props) {
               <TableHeader>
                 <TableRow>
                   <TableHead>Descrizione</TableHead>
-                  <TableHead>Misure</TableHead>
                   <TableHead>Q.tà</TableHead>
                   <TableHead>Prezzo</TableHead>
                   <TableHead>Optional</TableHead>
@@ -155,26 +156,10 @@ export default async function QuoteDetailPage({ params }: Props) {
                   <TableRow key={item.id}>
                     <TableCell className="max-w-md">
                       <div className="font-medium">{item.description}</div>
-                      {item.product?.demoPrice && (
-                        <Badge variant="warning" className="mt-1">
-                          DEMO
-                        </Badge>
-                      )}
-                      {item.calculationExplanation && (
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {item.calculationExplanation}
-                        </p>
-                      )}
                     </TableCell>
-                    <TableCell className="text-sm">{formatMeasures(item)}</TableCell>
                     <TableCell className="text-sm">{formatNumber(item.quantity, 2)}</TableCell>
                     <TableCell className="text-sm">
                       {formatCurrency(item.unitPrice)}
-                      <span className="block text-xs text-muted-foreground">
-                        {item.manualPriceOverride != null
-                          ? 'manuale'
-                          : unitPriceLabel(item.product?.pricingFormula)}
-                      </span>
                     </TableCell>
                     <TableCell className="text-sm">
                       {item.optionsTotal > 0
@@ -286,22 +271,7 @@ function TotalCard({
   );
 }
 
-function formatMeasures(item: {
-  widthCm: number | null;
-  heightCm: number | null;
-  lengthCm: number | null;
-  areaMq: number | null;
-  linearMeters: number | null;
-}) {
-  const parts: string[] = [];
-  if (item.widthCm && item.heightCm) {
-    parts.push(`${formatNumber(item.widthCm, 0)}×${formatNumber(item.heightCm, 0)} cm`);
-  }
-  if (item.lengthCm) parts.push(`${formatNumber(item.lengthCm, 0)} cm`);
-  if (item.areaMq) parts.push(`${formatNumber(item.areaMq)} mq`);
-  if (item.linearMeters) parts.push(`${formatNumber(item.linearMeters)} m`);
-  return parts.length > 0 ? parts.join(' · ') : '—';
-}
+
 
 function formatOptionNames(value: unknown): string {
   if (!Array.isArray(value)) return '';

@@ -107,10 +107,8 @@ export async function addQuoteItem(
         })
       : null;
 
-    if (!product && data.manualPriceOverride == null) {
-      throw new Error(
-        'Se non selezioni un prodotto, devi indicare un prezzo manuale.'
-      );
+    if (!product) {
+      throw new Error('Seleziona un prodotto dal catalogo.');
     }
 
     const selectedOptionIds = [...new Set(data.selectedOptionIds ?? [])];
@@ -120,21 +118,15 @@ export async function addQuoteItem(
       product,
       selectedOptionIds
     );
-    const productSnapshot = product
-      ? toProductSnapshot(product)
-      : manualProductSnapshot(data.description, data.manualPriceOverride ?? 0);
+    const productSnapshot = toProductSnapshot(product);
     const optionSnapshots = selectedOptions.map(toOptionSnapshot);
 
     const calculation = calculateQuoteLine(
       {
         product: productSnapshot,
         quantity: data.quantity,
-        widthCm: data.widthCm,
-        heightCm: data.heightCm,
-        lengthCm: data.lengthCm,
         selectedOptions: optionSnapshots,
         discountPercentage: data.discountPercentage,
-        manualPriceOverride: data.manualPriceOverride,
         notes: data.notes,
       },
       { vatRate: quote.vatRate, currency: 'EUR' }
@@ -145,16 +137,10 @@ export async function addQuoteItem(
       data: {
         companyId,
         quoteId,
-        productId: product?.id ?? null,
-        description: data.description || product?.name || productSnapshot.name,
+        productId: product.id,
+        description: data.description || product.name,
         productSnapshot: toJsonObject(productSnapshot),
         quantity: data.quantity,
-        widthCm: data.widthCm,
-        heightCm: data.heightCm,
-        lengthCm: data.lengthCm,
-        areaMq: calculation.areaMq,
-        billableAreaMq: calculation.billableAreaMq,
-        linearMeters: calculation.linearMeters,
         unitPrice: calculation.unitPrice,
         optionsTotal: calculation.optionsTotal,
         selectedOptions: optionSnapshots.map((opt) => toJsonObject(opt)),
@@ -163,11 +149,44 @@ export async function addQuoteItem(
         vatRate: calculation.vatRate,
         vatAmount: calculation.vatAmount,
         total: calculation.total,
-        manualPriceOverride: data.manualPriceOverride,
         calculationExplanation: calculation.explanation,
         position: maxPosition + 1,
       },
     });
+
+    const installationPrice = data.installationPrice ?? 0;
+    if (installationPrice > 0) {
+      const laborSnapshot: ProductSnapshot = {
+        name: `Manodopera — ${product.name}`,
+        unit: 'pz',
+        basePrice: installationPrice,
+        pricingFormula: 'FIXED_PRICE',
+      };
+      const laborCalc = calculateQuoteLine(
+        { product: laborSnapshot, quantity: data.quantity },
+        { vatRate: quote.vatRate, currency: 'EUR' }
+      );
+      await tx.quoteItem.create({
+        data: {
+          companyId,
+          quoteId,
+          productId: null,
+          description: laborSnapshot.name,
+          productSnapshot: toJsonObject(laborSnapshot),
+          quantity: data.quantity,
+          unitPrice: laborCalc.unitPrice,
+          optionsTotal: 0,
+          selectedOptions: [],
+          discountPercentage: 0,
+          subtotal: laborCalc.subtotal,
+          vatRate: laborCalc.vatRate,
+          vatAmount: laborCalc.vatAmount,
+          total: laborCalc.total,
+          calculationExplanation: laborCalc.explanation,
+          position: maxPosition + 2,
+        },
+      });
+    }
 
     await recalculateQuoteTotalsTx(tx, companyId, quoteId);
 

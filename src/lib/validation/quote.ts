@@ -28,7 +28,10 @@ export const quoteCreateSchema = z.object({
   ),
   notes: z.string().max(MAX_TEXT).optional(),
   internalNotes: z.string().max(MAX_TEXT).optional(),
-  vatRate: requiredNumber.default(22),
+  vatRate: z.preprocess(
+    (v) => (v === '' || v == null ? 22 : typeof v === 'string' ? Number(v) : v),
+    z.number().refine((v) => [0, 10, 22].includes(v), { message: 'IVA deve essere 0%, 10% o 22%.' })
+  ).default(22),
 });
 
 export const quoteItemSchema = z.object({
@@ -39,7 +42,7 @@ export const quoteItemSchema = z.object({
   heightCm: optionalNumber,
   lengthCm: optionalNumber,
   discountPercentage: requiredNumber.default(0),
-  manualPriceOverride: optionalNumber,
+  installationPrice: optionalNumber,
   selectedOptionIds: z.array(z.string().trim().min(1)).max(50).default([]),
   notes: z.string().max(MAX_TEXT).optional(),
 });
