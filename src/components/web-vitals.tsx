@@ -8,11 +8,16 @@ export function WebVitals() {
     const webVitalName = metric.name;
     const webVitalValue = metric.value;
 
-    Sentry.metrics.distribution(`web_vital.${webVitalName}`, webVitalValue, {
-      unit: webVitalName === 'CLS' ? 'none' : 'millisecond',
-      tags: {
+    Sentry.addBreadcrumb({
+      category: 'web-vitals',
+      message: `${webVitalName}: ${Math.round(webVitalValue * 1000) / 1000}`,
+      level: metric.rating === 'poor' ? 'warning' : 'info',
+      data: {
+        name: webVitalName,
+        value: webVitalValue,
         rating: metric.rating,
         navigationType: metric.navigationType,
+        id: metric.id,
       },
     });
 
