@@ -1,8 +1,12 @@
+const { withSentryConfig } = require('@sentry/nextjs');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
   reactStrictMode: true,
+  productionBrowserSourceMaps: true,
   experimental: {
+    instrumentationHook: true,
     serverComponentsExternalPackages: [
       '@prisma/client',
       'bcryptjs',
@@ -20,4 +24,11 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+module.exports = withSentryConfig(nextConfig, {
+  org: 'linkinfissi',
+  project: 'mvp-infissi',
+  sentryUrl: 'https://glitchtip.app.easlydev.online',
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  widenClientFileUpload: true,
+  silent: true,
+});
