@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+async function runChecks() {
   const checks = {
     database: false,
   };
@@ -16,6 +16,11 @@ export async function GET() {
   }
 
   const allHealthy = Object.values(checks).every(Boolean);
+  return { checks, allHealthy };
+}
+
+export async function GET() {
+  const { checks, allHealthy } = await runChecks();
 
   return NextResponse.json(
     {
@@ -25,4 +30,9 @@ export async function GET() {
     },
     { status: allHealthy ? 200 : 503 }
   );
+}
+
+export async function HEAD() {
+  const { allHealthy } = await runChecks();
+  return new NextResponse(null, { status: allHealthy ? 200 : 503 });
 }
