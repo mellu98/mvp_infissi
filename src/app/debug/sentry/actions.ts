@@ -1,8 +1,10 @@
 'use server';
 
+import '../../../sentry.server.config';
 import * as Sentry from '@sentry/nextjs';
 
 export async function triggerServerError() {
+  console.log('[Debug Action] triggerServerError called');
   const error = new Error('Test server error from debug page');
   Sentry.captureException(error);
   throw error;

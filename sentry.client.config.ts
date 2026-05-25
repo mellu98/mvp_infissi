@@ -10,3 +10,5 @@ Sentry.init({
   tracesSampleRate: 0.1,
   tunnel: '/api/glitchtip-tunnel',
 });
+
+console.log('[Sentry Client] Initialized', SENTRY_RELEASE || 'development');
