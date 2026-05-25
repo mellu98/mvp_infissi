@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { WebVitals } from '@/components/web-vitals';
 
 export const metadata: Metadata = {
   title: 'MVP Infissi — Link Infissi',
@@ -9,7 +10,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="it" suppressHydrationWarning>
-      <body className="min-h-screen bg-background font-sans antialiased">{children}</body>
+      <body className="min-h-screen bg-background font-sans antialiased">
+        {children}
+        <WebVitals />
+      </body>
     </html>
   );
 }

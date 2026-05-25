@@ -4,18 +4,25 @@ import { prisma } from '@/lib/db';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  const checks = {
+    database: false,
+  };
+
   try {
     await prisma.$queryRaw`SELECT 1`;
-    return NextResponse.json({
-      status: 'ok',
-      db: 'ok',
-      uptime: process.uptime(),
-      timestamp: new Date().toISOString(),
-    });
-  } catch (err) {
-    return NextResponse.json(
-      { status: 'error', db: 'down', error: (err as Error).message },
-      { status: 503 }
-    );
+    checks.database = true;
+  } catch {
+    checks.database = false;
   }
+
+  const allHealthy = Object.values(checks).every(Boolean);
+
+  return NextResponse.json(
+    {
+      status: allHealthy ? 'healthy' : 'unhealthy',
+      timestamp: new Date().toISOString(),
+      checks,
+    },
+    { status: allHealthy ? 200 : 503 }
+  );
 }
