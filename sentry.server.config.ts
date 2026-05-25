@@ -9,5 +9,3 @@ Sentry.init({
   environment: process.env.NODE_ENV || 'development',
   tracesSampleRate: 0.1,
 });
-
-console.log('[Sentry Server] Initialized', SENTRY_RELEASE || 'development');

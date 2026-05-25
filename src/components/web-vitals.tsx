@@ -1,5 +1,6 @@
 'use client';
 
+import '../../sentry.client.config';
 import { useReportWebVitals } from 'next/web-vitals';
 import * as Sentry from '@sentry/nextjs';
 
